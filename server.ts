@@ -53,7 +53,7 @@ const server = new ApolloServer({
       credentials: true,
       origin: [
         "http://localhost:4000",
-        "https://anonylove-server.vercel.app",
+        "https://anonylove.vercel.app",
         "https://studio.apollographql.com",
       ],
       methods: "GET,OPTIONS,PATCH,DELETE,POST,PUT",
