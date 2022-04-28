@@ -68,4 +68,4 @@ httpServer.listen(PORT, () => {
   console.log(`Server is now RUNNING on PORT ${PORT}`);
 });
 
-export default app;
+export default httpServer;
