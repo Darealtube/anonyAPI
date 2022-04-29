@@ -41,7 +41,8 @@ const server = new ApolloServer({
       },
     },
   ],
-  introspection: process.env.NODE_ENV !== 'production'
+  introspection: process.env.NODE_ENV !== "production",
+  debug: true,
 });
 
 (async () => {
