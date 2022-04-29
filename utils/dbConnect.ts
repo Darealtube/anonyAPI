@@ -16,7 +16,7 @@ declare global {
 }
 
 const MONGODB_URI =
-  "mongodb+srv://New_John_Doe:tk9YLFaCL1PHxYRu@cluster0.kkxjp.mongodb.net/AnonyLove?retryWrites=true&w=majority";
+  "mongodb+srv://New_John_Doe:tk9YLFaCL1PHxYRu@cluster0.kkxjp.mongodb.net/AnonyLove?authSource=admin&replicaSet=atlas-649tzi-shard-0&w=majority&readPreference=primary&appname=MongoDB%20Compass&retryWrites=true&ssl=true";
 
 if (!MONGODB_URI) {
   console.log(process.env.MONGODB_URI);
