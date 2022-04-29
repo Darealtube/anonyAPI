@@ -68,5 +68,3 @@ const server = new ApolloServer({
 httpServer.listen(PORT, () => {
   console.log(`Server is now RUNNING on PORT ${PORT}`);
 });
-
-export default httpServer;
