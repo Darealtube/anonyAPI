@@ -16,7 +16,7 @@ const httpServer = createServer(app);
 // Create our WebSocket server using the HTTP server we just set up.
 const wsServer = new WebSocketServer({
   server: httpServer,
-  path: "wss://anony-api-xi.vercel.app/graphql",
+  path: "/graphql",
 });
 
 // Save the returned server's info so we can shutdown this server later
@@ -62,6 +62,8 @@ const server = new ApolloServer({
         "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
     },
   });
+
+  console.log(PORT)
 })();
 
 // Now that our HTTP server is fully set up, we can listen to it.
