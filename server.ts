@@ -41,7 +41,7 @@ const server = new ApolloServer({
       },
     },
   ],
-  introspection: process.env.NODE_ENV !== 'production'
+  introspection: process.env.NODE_ENV !== "production",
 });
 
 (async () => {
@@ -69,4 +69,4 @@ httpServer.listen(PORT, () => {
   console.log(`Server is now RUNNING on PORT ${PORT}`);
 });
 
-export default httpServer;
+export default server;
