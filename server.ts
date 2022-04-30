@@ -16,7 +16,7 @@ const httpServer = createServer(app);
 // Create our WebSocket server using the HTTP server we just set up.
 const wsServer = new WebSocketServer({
   server: httpServer,
-  path: "/graphql",
+  path: "wss://anony-api-xi.vercel.app/graphql",
 });
 
 // Save the returned server's info so we can shutdown this server later
@@ -41,7 +41,7 @@ const server = new ApolloServer({
       },
     },
   ],
-  introspection: process.env.NODE_ENV !== "production",
+  introspection: process.env.NODE_ENV !== 'production'
 });
 
 (async () => {
@@ -69,4 +69,4 @@ httpServer.listen(PORT, () => {
   console.log(`Server is now RUNNING on PORT ${PORT}`);
 });
 
-export default server;
+export default httpServer;
