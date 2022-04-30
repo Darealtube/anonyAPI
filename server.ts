@@ -41,34 +41,28 @@ const server = new ApolloServer({
       },
     },
   ],
-  introspection: process.env.NODE_ENV !== 'production'
+  introspection: process.env.NODE_ENV !== "production",
 });
 
-(async () => {
-  await server.start();
+await server.start();
 
-  // Apply CORS here. app.use(cors()) does not work because 'app' is not the one listening to PORT; It's the HTTP Server.
-  server.applyMiddleware({
-    app,
-    cors: {
-      credentials: true,
-      origin: [
-        "http://localhost:4000",
-        "https://anonylove.vercel.app",
-        "https://studio.apollographql.com",
-      ],
-      methods: "GET,OPTIONS,PATCH,DELETE,POST,PUT",
-      allowedHeaders:
-        "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
-    },
-  });
-
-  console.log(PORT)
-})();
+// Apply CORS here. app.use(cors()) does not work because 'app' is not the one listening to PORT; It's the HTTP Server.
+server.applyMiddleware({
+  app,
+  cors: {
+    credentials: true,
+    origin: [
+      "http://localhost:4000",
+      "https://anonylove.vercel.app",
+      "https://studio.apollographql.com",
+    ],
+    methods: "GET,OPTIONS,PATCH,DELETE,POST,PUT",
+    allowedHeaders:
+      "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
+  },
+});
 
 // Now that our HTTP server is fully set up, we can listen to it.
 httpServer.listen(PORT, () => {
   console.log(`Server is now RUNNING on PORT ${PORT}`);
 });
-
-export default httpServer;
