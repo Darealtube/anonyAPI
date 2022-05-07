@@ -91,10 +91,10 @@ export const resolvers: Resolvers = {
       const totalCount = await Message.count({ chat: parent._id });
       const messages = await Message.find({
         chat: parent._id,
-        ...(args.after && { date: { $gt: Decursorify(args.after) } }),
+        ...(args.after && { date: { $lt: Decursorify(args.after) } }),
       })
-        .limit(10)
-        .sort({ date: 1 });
+        .sort({ date: -1 })
+        .limit(args.limit);
 
       const data = relayPaginate({
         finalArray: messages,
@@ -191,12 +191,19 @@ export const resolvers: Resolvers = {
     },
     sendMessage: async (_parent, args, _context, _info) => {
       const message = await Message.create(args);
+      const updatedChat = await Chat.findByIdAndUpdate(
+        args.chat,
+        {
+          updatedAt: DateTime.local(),
+          ...(args.anonymous
+            ? { anonSeen: true, confesseeSeen: false }
+            : { confesseeSeen: true, anonSeen: false }),
+        },
+        { new: true }
+      );
       await pubsub.publish("NEW_MESSAGE", { newMessage: message });
-      await Chat.findByIdAndUpdate(args.chat, {
-        updatedAt: DateTime.local(),
-        ...(args.anonymous
-          ? { anonLastSeen: DateTime.local() }
-          : { confesseeLastSeen: DateTime.local() }),
+      await pubsub.publish("SEEN_CHAT", {
+        seenChat: updatedChat,
       });
 
       return message;
@@ -206,21 +213,25 @@ export const resolvers: Resolvers = {
         args.chat,
         {
           ...(args.person === "anonymous"
-            ? { anonLastSeen: DateTime.local() }
-            : { confesseeLastSeen: DateTime.local() }),
+            ? { anonSeen: true }
+            : { confesseeSeen: true }),
         },
         { new: true }
       );
-      return {
-        anonLastSeen: updatedChat.anonLastSeen,
-        confesseeLastSeen: updatedChat.confesseeLastSeen,
-      };
+
+      await pubsub.publish("SEEN_CHAT", {
+        seenChat: updatedChat,
+      });
+      return true;
     },
   },
 
   Subscription: {
     newMessage: {
       subscribe: () => pubsub.asyncIterator(["NEW_MESSAGE"]),
+    },
+    seenChat: {
+      subscribe: () => pubsub.asyncIterator(["SEEN_CHAT"]),
     },
   },
 };

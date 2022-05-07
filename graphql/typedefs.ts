@@ -38,13 +38,8 @@ export const typeDefs = gql`
     updatedAt: Float
     messages(limit: Int, after: String): MessageConnection
     latestMessage: Message
-    anonLastSeen: Float
-    confesseeLastSeen: Float
-  }
-
-  type SeenChatResult {
-    anonLastSeen: Float
-    confesseeLastSeen: Float
+    anonSeen: Boolean
+    confesseeSeen: Boolean
   }
 
   type Message {
@@ -89,7 +84,7 @@ export const typeDefs = gql`
       message: String!
       anonymous: Boolean!
     ): Message
-    seenChat(person: String!, chat: ID!): SeenChatResult
+    seenChat(person: String!, chat: ID!): Boolean
     editUser(
       originalName: String!
       name: String!
@@ -102,5 +97,6 @@ export const typeDefs = gql`
 
   type Subscription {
     newMessage: Message
+    seenChat: Chat
   }
 `;

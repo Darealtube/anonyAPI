@@ -7,8 +7,8 @@ const ChatSchema = new Schema({
   anonymous: String,
   confessee: String,
   updatedAt: Number,
-  anonLastSeen: Number,
-  confesseeLastSeen: Number,
+  anonSeen: Boolean,
+  confesseeSeen: Boolean,
 });
 
 export default mongoose.models.Chat || mongoose.model("Chat", ChatSchema);
