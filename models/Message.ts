@@ -13,6 +13,7 @@ const MessageSchema = new Schema({
   sender: String,
   message: String,
   anonymous: Boolean,
+  expiresAt: Date,
 });
 
 export default mongoose.models.Message ||

@@ -190,7 +190,6 @@ export const resolvers: Resolvers = {
       return newChat;
     },
     sendMessage: async (_parent, args, _context, _info) => {
-      const message = await Message.create(args);
       const updatedChat = await Chat.findByIdAndUpdate(
         args.chat,
         {
@@ -201,6 +200,15 @@ export const resolvers: Resolvers = {
         },
         { new: true }
       );
+      // Calculates the remaining time from the message's created date to the chat's expiry date
+      const remainingTime = DateTime.fromJSDate(updatedChat.expiresAt)
+        .diff(DateTime.local())
+        .toObject();
+      // Expires at remaining time
+      const expiresAt = DateTime.local()
+        .plus(remainingTime.milliseconds as number)
+        .toJSDate();
+      const message = await Message.create({ ...args, expiresAt });
       await pubsub.publish("NEW_MESSAGE", { newMessage: message });
       await pubsub.publish("SEEN_CHAT", {
         seenChat: updatedChat,
@@ -222,6 +230,15 @@ export const resolvers: Resolvers = {
       await pubsub.publish("SEEN_CHAT", {
         seenChat: updatedChat,
       });
+      return true;
+    },
+    endChat: async (_parent, args, _context, _info) => {
+      const deletedChat = await Chat.findByIdAndDelete(args.chat);
+      await Message.deleteMany({ chat: deletedChat._id });
+      await User.updateMany(
+        { activeChat: deletedChat._id },
+        { activeChat: null }
+      );
       return true;
     },
   },

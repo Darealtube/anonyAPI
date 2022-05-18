@@ -3,6 +3,10 @@ import { Schema } from "mongoose";
 import mongoose from "mongoose";
 import { DateTime } from "luxon";
 
+const expiryDate = () => {
+  return DateTime.local().plus({ minutes: 15 });
+};
+
 const ChatSchema = new Schema({
   id: ObjectId,
   anonymous: String,
@@ -16,9 +20,9 @@ const ChatSchema = new Schema({
     type: Boolean,
     default: false,
   },
-  expiresIn: {
+  expiresAt: {
     type: Date,
-    default: DateTime.local().plus({ minutes: 15 }),
+    default: expiryDate,
   },
 });
 
