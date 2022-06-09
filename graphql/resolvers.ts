@@ -36,16 +36,16 @@ export const resolvers: Resolvers = {
       const totalCount = await Request.count({ anonymous: parent.name });
       const sentConfessions = await Request.find({
         anonymous: parent.name,
-        ...(args.after && { date: { $lt: Decursorify(args.after) } }),
+        ...(args.after && { _id: { $lt: Decursorify(args.after) } }),
       })
         .sort({
-          date: -1,
+          _id: -1,
         })
         .limit(args.limit);
 
       const data = relayPaginate({
         finalArray: sentConfessions,
-        cursorIdentifier: "date",
+        cursorIdentifier: "_id",
         limit: args.limit,
       });
       return { ...data, totalCount };
@@ -54,22 +54,32 @@ export const resolvers: Resolvers = {
       const totalCount = await Request.count({ receiver: parent.name });
       const receivedConfessions = await Request.find({
         receiver: parent.name,
-        ...(args.after && { date: { $lt: Decursorify(args.after) } }),
+        ...(args.after && {
+          _id: {
+            $lt: Decursorify(args.after),
+          },
+        }),
       })
         .sort({
-          date: -1,
+          _id: -1,
         })
         .limit(args.limit);
-
       const data = relayPaginate({
         finalArray: receivedConfessions,
-        cursorIdentifier: "date",
+        cursorIdentifier: "_id",
         limit: args.limit,
       });
       return { ...data, totalCount };
     },
     activeChat: async (parent, _args, _context, _info) => {
       return await Chat.findById(parent.activeChat);
+    },
+    userSentRequest: async (parent, args, _context, _info) => {
+      const sentRequest = await Request.findOne({
+        anonymous: args.from,
+        receiver: parent.name,
+      });
+      return sentRequest ? true : false;
     },
   },
   Request: {
@@ -91,14 +101,14 @@ export const resolvers: Resolvers = {
       const totalCount = await Message.count({ chat: parent._id });
       const messages = await Message.find({
         chat: parent._id,
-        ...(args.after && { date: { $lt: Decursorify(args.after) } }),
+        ...(args.after && { _id: { $lt: Decursorify(args.after) } }),
       })
-        .sort({ date: -1 })
+        .sort({ _id: -1 })
         .limit(args.limit);
 
       const data = relayPaginate({
         finalArray: messages,
-        cursorIdentifier: "date",
+        cursorIdentifier: "_id",
         limit: args.limit,
       });
       return { ...data, totalCount };
@@ -165,13 +175,12 @@ export const resolvers: Resolvers = {
         receiver: args.receiver,
         accepted: false,
       });
+      await pubsub.publish("NEW_SENT_REQUEST", { newSentRequest: sentRequest });
       return sentRequest;
     },
     rejectConfessionRequest: async (_parent, args, _context, _info) => {
-      await Request.deleteOne({
-        _id: args.requestID,
-      });
-      return true;
+      const deletedRequest = await Request.findByIdAndDelete(args.requestID);
+      return deletedRequest._id;
     },
     acceptConfessionRequest: async (_parent, args, _context, _info) => {
       const request = await Request.findByIdAndDelete(args.requestID);
@@ -246,6 +255,9 @@ export const resolvers: Resolvers = {
   Subscription: {
     newMessage: {
       subscribe: () => pubsub.asyncIterator(["NEW_MESSAGE"]),
+    },
+    newSentRequest: {
+      subscribe: () => pubsub.asyncIterator(["NEW_SENT_REQUEST"]),
     },
     seenChat: {
       subscribe: () => pubsub.asyncIterator(["SEEN_CHAT"]),

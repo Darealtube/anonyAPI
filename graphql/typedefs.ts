@@ -4,7 +4,7 @@ export const typeDefs = gql`
   type User {
     _id: ID!
     name: String!
-    email: String!
+    email: String
     image: String
     cover: String
     bio: String
@@ -12,6 +12,7 @@ export const typeDefs = gql`
     sentConfessionRequests(limit: Int, after: String): RequestConnection
     receivedConfessionRequests(limit: Int, after: String): RequestConnection
     activeChat: Chat
+    userSentRequest(from: String): Boolean
   }
 
   type Request {
@@ -78,7 +79,7 @@ export const typeDefs = gql`
     createUser(name: String, email: String): Boolean
     createUniqueTag(userId: ID!, name: String!): Boolean
     sendConfessionRequest(anonymous: String!, receiver: String!): Request
-    rejectConfessionRequest(requestID: ID!): Boolean
+    rejectConfessionRequest(requestID: ID!): ID
     acceptConfessionRequest(requestID: ID!): Chat
     sendMessage(
       chat: ID!
@@ -101,5 +102,6 @@ export const typeDefs = gql`
   type Subscription {
     newMessage: Message
     seenChat: Chat
+    newSentRequest: Request
   }
 `;
