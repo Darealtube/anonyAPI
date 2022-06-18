@@ -175,7 +175,6 @@ export const resolvers: Resolvers = {
         receiver: args.receiver,
         accepted: false,
       });
-      await pubsub.publish("NEW_SENT_REQUEST", { newSentRequest: sentRequest });
       return sentRequest;
     },
     rejectConfessionRequest: async (_parent, args, _context, _info) => {
@@ -255,9 +254,6 @@ export const resolvers: Resolvers = {
   Subscription: {
     newMessage: {
       subscribe: () => pubsub.asyncIterator(["NEW_MESSAGE"]),
-    },
-    newSentRequest: {
-      subscribe: () => pubsub.asyncIterator(["NEW_SENT_REQUEST"]),
     },
     seenChat: {
       subscribe: () => pubsub.asyncIterator(["SEEN_CHAT"]),

@@ -102,6 +102,5 @@ export const typeDefs = gql`
   type Subscription {
     newMessage: Message
     seenChat: Chat
-    newSentRequest: Request
   }
 `;
