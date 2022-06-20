@@ -9,6 +9,7 @@ import User from "../models/User";
 import Request from "../models/Request";
 import { Decursorify } from "../utils/cursorify";
 import relayPaginate from "../utils/relayPaginate";
+import Notification from "../models/Notification";
 
 const pubsub = new PubSub();
 
@@ -81,11 +82,38 @@ export const resolvers: Resolvers = {
       });
       return sentRequest ? true : false;
     },
+    userNotifications: async (parent, args, _context, _info) => {
+      const notifCount = await Notification.count({ receiver: parent.name });
+      const notifications = await Notification.find({
+        receiver: parent.name,
+        ...(args.after && {
+          _id: {
+            $lt: Decursorify(args.after),
+          },
+        }),
+      })
+        .sort({
+          _id: -1,
+        })
+        .limit(args.limit);
+
+      const data = relayPaginate({
+        finalArray: notifications,
+        cursorIdentifier: "_id",
+        limit: args.limit,
+      });
+      return { ...data, totalCount: notifCount };
+    },
   },
   Request: {
     anonymous: async (parent, _args, _context, _info) => {
       return await User.findOne({ name: parent.anonymous }).lean();
     },
+    receiver: async (parent, _args, _context, _info) => {
+      return await User.findOne({ name: parent.receiver }).lean();
+    },
+  },
+  Notification: {
     receiver: async (parent, _args, _context, _info) => {
       return await User.findOne({ name: parent.receiver }).lean();
     },
@@ -175,6 +203,10 @@ export const resolvers: Resolvers = {
         receiver: args.receiver,
         accepted: false,
       });
+      const newNotification = await Notification.create({
+        receiver: args.receiver,
+      });
+      await pubsub.publish("NEW_NOTIFICATION", { newNotif: newNotification });
       return sentRequest;
     },
     rejectConfessionRequest: async (_parent, args, _context, _info) => {
@@ -257,6 +289,9 @@ export const resolvers: Resolvers = {
     },
     seenChat: {
       subscribe: () => pubsub.asyncIterator(["SEEN_CHAT"]),
+    },
+    newNotif: {
+      subscribe: () => pubsub.asyncIterator(["NEW_NOTIFICATION"]),
     },
   },
 };
