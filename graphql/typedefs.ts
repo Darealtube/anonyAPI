@@ -9,10 +9,12 @@ export const typeDefs = gql`
     cover: String
     bio: String
     status: String
+    activeChat: Chat
+    notifSeen: Boolean
     sentConfessionRequests(limit: Int, after: String): RequestConnection
     receivedConfessionRequests(limit: Int, after: String): RequestConnection
-    activeChat: Chat
     userSentRequest(from: String): Boolean
+    userNotifications(limit: Int, after: String): NotificationConnection
   }
 
   type Request {
@@ -64,6 +66,22 @@ export const typeDefs = gql`
     node: Message
   }
 
+  type Notification {
+    _id: ID!
+    date: String!
+    receiver: User
+  }
+
+  type NotificationConnection {
+    totalCount: Int
+    pageInfo: PageInfo
+    edges: [NotificationEdge]
+  }
+
+  type NotificationEdge {
+    node: Notification
+  }
+
   type PageInfo {
     endCursor: ID
     hasNextPage: Boolean
@@ -97,10 +115,13 @@ export const typeDefs = gql`
       bio: String
       status: String
     ): Boolean
+    seenNotification(userName: String!): Boolean
+    deleteNotification(notifID: ID!): Boolean
   }
 
   type Subscription {
     newMessage: Message
+    notifSeen(receiver: String!): Boolean
     seenChat: Chat
   }
 `;

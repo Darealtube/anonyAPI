@@ -9,11 +9,20 @@ import User from "../models/User";
 import Request from "../models/Request";
 import { Decursorify } from "../utils/cursorify";
 import relayPaginate from "../utils/relayPaginate";
+import Notification from "../models/Notification";
 
 const pubsub = new PubSub();
 
+type DumbSub = () => AsyncIterator<unknown, any, undefined>;
+type SmartSub = (
+  parent?: any,
+  args?: any,
+  ctx?: Context,
+  info?: GraphQLResolveInfo
+) => AsyncIterator<unknown, any, undefined>;
+
 type SubscriptionFn = {
-  subscribe: () => AsyncIterator<unknown, any, undefined>;
+  subscribe: DumbSub | SmartSub;
 };
 
 type ResolverFn = (
@@ -81,11 +90,38 @@ export const resolvers: Resolvers = {
       });
       return sentRequest ? true : false;
     },
+    userNotifications: async (parent, args, _context, _info) => {
+      const notifCount = await Notification.count({ receiver: parent.name });
+      const notifications = await Notification.find({
+        receiver: parent.name,
+        ...(args.after && {
+          _id: {
+            $lt: Decursorify(args.after),
+          },
+        }),
+      })
+        .sort({
+          _id: -1,
+        })
+        .limit(args.limit);
+
+      const data = relayPaginate({
+        finalArray: notifications,
+        cursorIdentifier: "_id",
+        limit: args.limit,
+      });
+      return { ...data, totalCount: notifCount };
+    },
   },
   Request: {
     anonymous: async (parent, _args, _context, _info) => {
       return await User.findOne({ name: parent.anonymous }).lean();
     },
+    receiver: async (parent, _args, _context, _info) => {
+      return await User.findOne({ name: parent.receiver }).lean();
+    },
+  },
+  Notification: {
     receiver: async (parent, _args, _context, _info) => {
       return await User.findOne({ name: parent.receiver }).lean();
     },
@@ -175,6 +211,9 @@ export const resolvers: Resolvers = {
         receiver: args.receiver,
         accepted: false,
       });
+      await Notification.create({ receiver: args.receiver });
+      await User.updateOne({ name: args.receiver }, { notifSeen: false });
+      await pubsub.publish(`NOTIF_SEEN_${args.receiver}`, { notifSeen: false });
       return sentRequest;
     },
     rejectConfessionRequest: async (_parent, args, _context, _info) => {
@@ -249,6 +288,15 @@ export const resolvers: Resolvers = {
       );
       return true;
     },
+    seenNotification: async (_parent, args, _context, _info) => {
+      await User.updateOne({ name: args.userName }, { notifSeen: true });
+      await pubsub.publish(`NOTIF_SEEN_${args.userName}`, { notifSeen: true });
+      return true;
+    },
+    deleteNotification: async (_parent, args, _context, _info) => {
+      await Notification.deleteOne({ _id: args.notifID });
+      return true;
+    },
   },
 
   Subscription: {
@@ -257,6 +305,11 @@ export const resolvers: Resolvers = {
     },
     seenChat: {
       subscribe: () => pubsub.asyncIterator(["SEEN_CHAT"]),
+    },
+    notifSeen: {
+      subscribe: (_parent, args, _context, _info) => {
+        return pubsub.asyncIterator([`NOTIF_SEEN_${args.receiver}`]);
+      },
     },
   },
 };

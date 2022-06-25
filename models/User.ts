@@ -11,6 +11,10 @@ const UserSchema = new Schema({
   bio: String,
   status: String,
   activeChat: ObjectId,
+  notifSeen: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export default mongoose.models.User || mongoose.model("User", UserSchema);
