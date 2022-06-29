@@ -9,8 +9,8 @@ const expiryDate = () => {
 
 const ChatSchema = new Schema({
   id: ObjectId,
-  anonymous: String,
-  confessee: String,
+  anonymous: ObjectId,
+  confessee: ObjectId,
   updatedAt: Number,
   anonSeen: {
     type: Boolean,

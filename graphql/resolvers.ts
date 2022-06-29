@@ -42,14 +42,12 @@ interface Resolvers {
 export const resolvers: Resolvers = {
   User: {
     sentConfessionRequests: async (parent, args, _context, _info) => {
-      const totalCount = await Request.count({ anonymous: parent.name });
+      const totalCount = await Request.count({ anonymous: parent._id });
       const sentConfessions = await Request.find({
-        anonymous: parent.name,
+        anonymous: parent._id,
         ...(args.after && { _id: { $lt: Decursorify(args.after) } }),
       })
-        .sort({
-          _id: -1,
-        })
+        .sort({ _id: -1 })
         .limit(args.limit);
 
       const data = relayPaginate({
@@ -60,18 +58,12 @@ export const resolvers: Resolvers = {
       return { ...data, totalCount };
     },
     receivedConfessionRequests: async (parent, args, _context, _info) => {
-      const totalCount = await Request.count({ receiver: parent.name });
+      const totalCount = await Request.count({ receiver: parent._id });
       const receivedConfessions = await Request.find({
-        receiver: parent.name,
-        ...(args.after && {
-          _id: {
-            $lt: Decursorify(args.after),
-          },
-        }),
+        receiver: parent._id,
+        ...(args.after && { _id: { $lt: Decursorify(args.after) } }),
       })
-        .sort({
-          _id: -1,
-        })
+        .sort({ _id: -1 })
         .limit(args.limit);
       const data = relayPaginate({
         finalArray: receivedConfessions,
@@ -86,23 +78,17 @@ export const resolvers: Resolvers = {
     userSentRequest: async (parent, args, _context, _info) => {
       const sentRequest = await Request.findOne({
         anonymous: args.from,
-        receiver: parent.name,
+        receiver: parent._id,
       });
       return sentRequest ? true : false;
     },
     userNotifications: async (parent, args, _context, _info) => {
-      const notifCount = await Notification.count({ receiver: parent.name });
+      const notifCount = await Notification.count({ receiver: parent._id });
       const notifications = await Notification.find({
-        receiver: parent.name,
-        ...(args.after && {
-          _id: {
-            $lt: Decursorify(args.after),
-          },
-        }),
+        receiver: parent._id,
+        ...(args.after && { _id: { $lt: Decursorify(args.after) } }),
       })
-        .sort({
-          _id: -1,
-        })
+        .sort({ _id: -1 })
         .limit(args.limit);
 
       const data = relayPaginate({
@@ -115,23 +101,23 @@ export const resolvers: Resolvers = {
   },
   Request: {
     anonymous: async (parent, _args, _context, _info) => {
-      return await User.findOne({ name: parent.anonymous }).lean();
+      return await User.findOne({ _id: parent.anonymous });
     },
     receiver: async (parent, _args, _context, _info) => {
-      return await User.findOne({ name: parent.receiver }).lean();
+      return await User.findOne({ _id: parent.receiver });
     },
   },
   Notification: {
     receiver: async (parent, _args, _context, _info) => {
-      return await User.findOne({ name: parent.receiver }).lean();
+      return await User.findOne({ _id: parent.receiver });
     },
   },
   Chat: {
     anonymous: async (parent, _args, _context, _info) => {
-      return await User.findOne({ name: parent.anonymous });
+      return await User.findOne({ _id: parent.anonymous });
     },
     confessee: async (parent, _args, _context, _info) => {
-      return await User.findOne({ name: parent.confessee });
+      return await User.findOne({ _id: parent.confessee });
     },
     messages: async (parent, args, _context, _info) => {
       const totalCount = await Message.count({ chat: parent._id });
@@ -151,24 +137,20 @@ export const resolvers: Resolvers = {
     },
     latestMessage: async (parent, _args, _context, _info) => {
       const latestMessage = await Message.find({ chat: parent._id })
-        .sort({
-          date: -1,
-        })
+        .sort({ date: -1 })
         .limit(1);
       return latestMessage[0];
     },
   },
   Message: {
     sender: async (parent, _args, _context, _info) => {
-      return await User.findOne({ name: parent.sender });
+      return await User.findOne({ _id: parent.sender });
     },
   },
   Query: {
     searchUser: async (_parent, args, _context, _info) => {
       const searchUserResult = await User.find({
-        name: {
-          $regex: new RegExp(args.key.trim(), "i"),
-        },
+        name: { $regex: new RegExp(args.key.trim(), "i") },
       })
         .sort({ name: 1 })
         .limit(5);
@@ -178,9 +160,12 @@ export const resolvers: Resolvers = {
     getUser: async (_parent, args, _context, _info) => {
       return await User.findOne({ name: args.name });
     },
-    getUserActiveChat: async (_parent, args, _context, _info) => {
+    getProfile: async (_parent, args, _context, _info) => {
+      return await User.findById(args.id);
+    },
+    getProfileActiveChat: async (_parent, args, _context, _info) => {
       return await Chat.findOne({
-        $or: [{ anonymous: args.name }, { confessee: args.name }],
+        $or: [{ anonymous: args.id }, { confessee: args.id }],
       });
     },
   },
@@ -199,10 +184,8 @@ export const resolvers: Resolvers = {
       return true;
     },
     editUser: async (_parent, args, _context, _info) => {
-      const { originalName, ...updatedFields } = args;
-      await User.updateOne({ name: originalName }, updatedFields, {
-        new: true,
-      });
+      const { userId, ...updatedFields } = args;
+      await User.updateOne({ _id: userId }, updatedFields, { new: true });
       return true;
     },
     sendConfessionRequest: async (_parent, args, _context, _info) => {
@@ -212,7 +195,7 @@ export const resolvers: Resolvers = {
         accepted: false,
       });
       await Notification.create({ receiver: args.receiver });
-      await User.updateOne({ name: args.receiver }, { notifSeen: false });
+      await User.updateOne({ _id: args.receiver }, { notifSeen: false });
       await pubsub.publish(`NOTIF_SEEN_${args.receiver}`, { notifSeen: false });
       return sentRequest;
     },
@@ -226,17 +209,16 @@ export const resolvers: Resolvers = {
         anonymous: request.anonymous,
         confessee: request.receiver,
       });
-      await User.findOneAndUpdate(
-        { name: request.anonymous },
-        { activeChat: newChat._id }
-      );
-      await User.findOneAndUpdate(
-        { name: request.receiver },
-        { activeChat: newChat._id }
-      );
+      await User.findByIdAndUpdate(request.anonymous, {
+        activeChat: newChat._id,
+      });
+      await User.findByIdAndUpdate(request.receiver, {
+        activeChat: newChat._id,
+      });
       return newChat;
     },
     sendMessage: async (_parent, args, _context, _info) => {
+      const message = await Message.create(args);
       const updatedChat = await Chat.findByIdAndUpdate(
         args.chat,
         {
@@ -247,20 +229,8 @@ export const resolvers: Resolvers = {
         },
         { new: true }
       );
-      // Calculates the remaining time from the message's created date to the chat's expiry date
-      const remainingTime = DateTime.fromJSDate(updatedChat.expiresAt)
-        .diff(DateTime.local())
-        .toObject();
-      // Expires at remaining time
-      const expiresAt = DateTime.local()
-        .plus(remainingTime.milliseconds as number)
-        .toJSDate();
-      const message = await Message.create({ ...args, expiresAt });
       await pubsub.publish("NEW_MESSAGE", { newMessage: message });
-      await pubsub.publish("SEEN_CHAT", {
-        seenChat: updatedChat,
-      });
-
+      await pubsub.publish("SEEN_CHAT", { seenChat: updatedChat });
       return message;
     },
     seenChat: async (_parent, args, _context, _info) => {
@@ -273,10 +243,7 @@ export const resolvers: Resolvers = {
         },
         { new: true }
       );
-
-      await pubsub.publish("SEEN_CHAT", {
-        seenChat: updatedChat,
-      });
+      await pubsub.publish("SEEN_CHAT", { seenChat: updatedChat });
       return true;
     },
     endChat: async (_parent, args, _context, _info) => {
@@ -289,8 +256,8 @@ export const resolvers: Resolvers = {
       return true;
     },
     seenNotification: async (_parent, args, _context, _info) => {
-      await User.updateOne({ name: args.userName }, { notifSeen: true });
-      await pubsub.publish(`NOTIF_SEEN_${args.userName}`, { notifSeen: true });
+      await User.updateOne({ _id: args.userId }, { notifSeen: true });
+      await pubsub.publish(`NOTIF_SEEN_${args.userId}`, { notifSeen: true });
       return true;
     },
     deleteNotification: async (_parent, args, _context, _info) => {
