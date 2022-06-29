@@ -9,7 +9,7 @@ const NotificationSchema = new Schema({
     type: Date,
     default: DateTime.local,
   },
-  receiver: String,
+  receiver: ObjectId,
 });
 
 export default mongoose.models.Notification ||

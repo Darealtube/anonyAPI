@@ -13,7 +13,7 @@ export const typeDefs = gql`
     notifSeen: Boolean
     sentConfessionRequests(limit: Int, after: String): RequestConnection
     receivedConfessionRequests(limit: Int, after: String): RequestConnection
-    userSentRequest(from: String): Boolean
+    userSentRequest(from: ID!): Boolean
     userNotifications(limit: Int, after: String): NotificationConnection
   }
 
@@ -89,39 +89,40 @@ export const typeDefs = gql`
 
   type Query {
     getUser(name: String!): User
+    getProfile(id: ID!): User
     searchUser(key: String): [User]
-    getUserActiveChat(name: String!): Chat
+    getProfileActiveChat(id: ID!): Chat
   }
 
   type Mutation {
     createUser(name: String, email: String): Boolean
     createUniqueTag(userId: ID!, name: String!): Boolean
-    sendConfessionRequest(anonymous: String!, receiver: String!): Request
+    sendConfessionRequest(anonymous: ID!, receiver: ID!): Request
     rejectConfessionRequest(requestID: ID!): ID
     acceptConfessionRequest(requestID: ID!): Chat
     sendMessage(
       chat: ID!
-      sender: String!
+      sender: ID!
       message: String!
       anonymous: Boolean!
     ): Message
     seenChat(person: String!, chat: ID!): Boolean
     endChat(chat: ID!): Boolean
     editUser(
-      originalName: String!
+      userId: ID!
       name: String!
       image: String
       cover: String
       bio: String
       status: String
     ): Boolean
-    seenNotification(userName: String!): Boolean
+    seenNotification(userId: ID!): Boolean
     deleteNotification(notifID: ID!): Boolean
   }
 
   type Subscription {
     newMessage: Message
-    notifSeen(receiver: String!): Boolean
+    notifSeen(receiver: ID!): Boolean
     seenChat: Chat
   }
 `;
