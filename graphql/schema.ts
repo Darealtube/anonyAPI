@@ -5,7 +5,7 @@ import { applyMiddleware } from "graphql-middleware";
 import { createRateLimitRule } from "graphql-rate-limit";
 import { shield } from "graphql-shield";
 
-const rateLimitRule = createRateLimitRule({ identifyContext: (ctx) => ctx });
+const rateLimitRule = createRateLimitRule({ identifyContext: (ctx) => {console.log(ctx); return ctx} });
 
 export const permissions = shield({
   Mutation: {
