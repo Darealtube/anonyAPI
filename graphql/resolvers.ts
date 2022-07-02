@@ -72,7 +72,8 @@ export const resolvers: Resolvers = {
       });
       return { ...data, totalCount };
     },
-    activeChat: async (parent, _args, _context, _info) => {
+    activeChat: async (parent, _args, context, _info) => {
+      console.log(context);
       return await Chat.findById(parent.activeChat);
     },
     userSentRequest: async (parent, args, _context, _info) => {
