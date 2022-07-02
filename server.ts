@@ -27,6 +27,10 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
   // Set up ApolloServer.
   const server = new ApolloServer({
     schema,
+    introspection: process.env.NODE_ENV !== "production",
+    context: ({ req }) => {
+      console.log(req.headers);
+    },
     plugins: [
       // Proper shutdown for the HTTP server.
       ApolloServerPluginDrainHttpServer({ httpServer }),
@@ -42,7 +46,6 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
         },
       },
     ],
-    introspection: process.env.NODE_ENV !== "production",
   });
 
   await server.start();
