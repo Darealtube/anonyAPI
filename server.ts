@@ -27,6 +27,10 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
   // Set up ApolloServer.
   const server = new ApolloServer({
     schema,
+    context: ({ req }) => {
+      const userIP = req.header("x-forwarded-for");
+      return userIP;
+    },
     introspection: process.env.NODE_ENV !== "production",
     plugins: [
       // Proper shutdown for the HTTP server.
