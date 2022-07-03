@@ -29,7 +29,7 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
     schema,
     context: ({ req }) => {
       const userIP = req.headers["x-forwarded-for"];
-      return userIP;
+      return { userIP };
     },
     introspection: process.env.NODE_ENV !== "production",
     plugins: [
