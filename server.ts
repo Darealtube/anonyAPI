@@ -27,6 +27,10 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
   // Set up ApolloServer.
   const server = new ApolloServer({
     schema,
+    context: ({ req }) => {
+      const userID = req.headers["authorization"];
+      return { userID };
+    },
     introspection: process.env.NODE_ENV !== "production",
     plugins: [
       // Proper shutdown for the HTTP server.
@@ -59,7 +63,7 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
       ],
       methods: "GET,OPTIONS,PATCH,DELETE,POST,PUT",
       allowedHeaders:
-        "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
+        "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, authorization",
     },
   });
 
