@@ -28,8 +28,8 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
   const server = new ApolloServer({
     schema,
     context: ({ req }) => {
-      const userIP = req.headers["x-forwarded-for"];
-      return { userIP };
+      const userID = req.headers["authorization"];
+      return { userID };
     },
     introspection: process.env.NODE_ENV !== "production",
     plugins: [
@@ -63,7 +63,7 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
       ],
       methods: "GET,OPTIONS,PATCH,DELETE,POST,PUT",
       allowedHeaders:
-        "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
+        "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, authorization",
     },
   });
 

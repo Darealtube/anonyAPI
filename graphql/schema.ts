@@ -6,10 +6,7 @@ import { createRateLimitRule } from "graphql-rate-limit";
 import { shield } from "graphql-shield";
 
 const rateLimitRule = createRateLimitRule({
-  identifyContext: (ctx) => {
-    console.log(ctx.userIP);
-    return ctx.userIP;
-  },
+  identifyContext: (ctx) => ctx.userID,
 });
 
 export const permissions = shield({
