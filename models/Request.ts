@@ -7,7 +7,7 @@ const RequestSchema = new Schema({
   id: ObjectId,
   date: {
     type: Date,
-    default: DateTime.local,
+    default: DateTime.utc,
   },
   anonymous: ObjectId,
   receiver: ObjectId,

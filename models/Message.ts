@@ -8,7 +8,7 @@ const MessageSchema = new Schema({
   chat: ObjectId,
   date: {
     type: Date,
-    default: DateTime.local,
+    default: DateTime.utc,
   },
   sender: String,
   message: String,

@@ -11,7 +11,7 @@ const rateLimitRule = createRateLimitRule({
 
 export const permissions = shield({
   Mutation: {
-    sendMessage: rateLimitRule({ window: "5s", max: 1 }),
+    sendMessage: rateLimitRule({ window: "30s", max: 15 }),
   },
 });
 

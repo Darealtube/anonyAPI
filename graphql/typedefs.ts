@@ -44,6 +44,7 @@ export const typeDefs = gql`
     anonSeen: Boolean
     confesseeSeen: Boolean
     expiresAt: Float
+    startedAt: Float
   }
 
   type Message {

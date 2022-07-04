@@ -7,7 +7,7 @@ const NotificationSchema = new Schema({
   id: ObjectId,
   date: {
     type: Date,
-    default: DateTime.local,
+    default: DateTime.utc,
   },
   receiver: ObjectId,
 });

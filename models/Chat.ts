@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { DateTime } from "luxon";
 
 const expiryDate = () => {
-  return DateTime.local().plus({ minutes: 15 });
+  return DateTime.utc().plus({ minutes: 15 });
 };
 
 const ChatSchema = new Schema({
@@ -20,6 +20,7 @@ const ChatSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  startedAt: Date,
   expiresAt: {
     type: Date,
     default: expiryDate,

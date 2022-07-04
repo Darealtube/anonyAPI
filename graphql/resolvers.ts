@@ -208,13 +208,17 @@ export const resolvers: Resolvers = {
       const newChat = await Chat.create({
         anonymous: request.anonymous,
         confessee: request.receiver,
+        startedAt: DateTime.utc(),
       });
-      await User.findByIdAndUpdate(request.anonymous, {
-        activeChat: newChat._id,
-      });
-      await User.findByIdAndUpdate(request.receiver, {
-        activeChat: newChat._id,
-      });
+      await User.updateMany(
+        {
+          $or: [
+            { anonymous: request.anonymous },
+            { confessee: request.receiver },
+          ],
+        },
+        { activeChat: newChat._id }
+      );
       return newChat;
     },
     sendMessage: async (_parent, args, _context, _info) => {
@@ -222,7 +226,7 @@ export const resolvers: Resolvers = {
       const updatedChat = await Chat.findByIdAndUpdate(
         args.chat,
         {
-          updatedAt: DateTime.local(),
+          updatedAt: DateTime.utc(),
           ...(args.anonymous
             ? { anonSeen: true, confesseeSeen: false }
             : { confesseeSeen: true, anonSeen: false }),
