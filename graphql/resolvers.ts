@@ -219,6 +219,12 @@ export const resolvers: Resolvers = {
         },
         { activeChat: newChat._id }
       );
+      await pubsub.publish(`PROFILE_CHAT_${request.anonymous}`, {
+        profileChat: newChat,
+      });
+      await pubsub.publish(`PROFILE_CHAT_${request.receiver}`, {
+        profileChat: newChat,
+      });
       return newChat;
     },
     sendMessage: async (_parent, args, _context, _info) => {
@@ -234,7 +240,12 @@ export const resolvers: Resolvers = {
         { new: true }
       );
       await pubsub.publish("NEW_MESSAGE", { newMessage: message });
-      await pubsub.publish("SEEN_CHAT", { seenChat: updatedChat });
+      await pubsub.publish(`PROFILE_CHAT_${updatedChat.confessee}`, {
+        profileChat: updatedChat,
+      });
+      await pubsub.publish(`PROFILE_CHAT_${updatedChat.anonymous}`, {
+        profileChat: updatedChat,
+      });
       return message;
     },
     seenChat: async (_parent, args, _context, _info) => {
@@ -247,7 +258,12 @@ export const resolvers: Resolvers = {
         },
         { new: true }
       );
-      await pubsub.publish("SEEN_CHAT", { seenChat: updatedChat });
+      await pubsub.publish(`PROFILE_CHAT_${updatedChat.confessee}`, {
+        profileChat: updatedChat,
+      });
+      await pubsub.publish(`PROFILE_CHAT_${updatedChat.anonymous}`, {
+        profileChat: updatedChat,
+      });
       return true;
     },
     endChat: async (_parent, args, _context, _info) => {
@@ -257,6 +273,12 @@ export const resolvers: Resolvers = {
         { activeChat: deletedChat._id },
         { activeChat: null }
       );
+      await pubsub.publish(`PROFILE_CHAT_${deletedChat.confessee}`, {
+        profileChat: null,
+      });
+      await pubsub.publish(`PROFILE_CHAT_${deletedChat.anonymous}`, {
+        profileChat: null,
+      });
       return true;
     },
     seenNotification: async (_parent, args, _context, _info) => {
@@ -274,8 +296,10 @@ export const resolvers: Resolvers = {
     newMessage: {
       subscribe: () => pubsub.asyncIterator(["NEW_MESSAGE"]),
     },
-    seenChat: {
-      subscribe: () => pubsub.asyncIterator(["SEEN_CHAT"]),
+    profileChat: {
+      subscribe: (_parent, args, _context, _info) => {
+        return pubsub.asyncIterator([`PROFILE_CHAT_${args.user}`]);
+      },
     },
     notifSeen: {
       subscribe: (_parent, args, _context, _info) => {

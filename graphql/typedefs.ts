@@ -124,6 +124,6 @@ export const typeDefs = gql`
   type Subscription {
     newMessage: Message
     notifSeen(receiver: ID!): Boolean
-    seenChat: Chat
+    profileChat(user: ID!): Chat
   }
 `;
