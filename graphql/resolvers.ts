@@ -239,7 +239,9 @@ export const resolvers: Resolvers = {
         },
         { new: true }
       );
-      await pubsub.publish("NEW_MESSAGE", { newMessage: message });
+      await pubsub.publish(`${updatedChat._id}_NEW_MESSAGE`, {
+        newMessage: message,
+      });
       await pubsub.publish(`PROFILE_CHAT_${updatedChat.confessee}`, {
         profileChat: updatedChat,
       });
@@ -294,7 +296,9 @@ export const resolvers: Resolvers = {
 
   Subscription: {
     newMessage: {
-      subscribe: () => pubsub.asyncIterator(["NEW_MESSAGE"]),
+      subscribe: (_parent, args, _context, _info) => {
+        return pubsub.asyncIterator([`${args.chat}_NEW_MESSAGE`]);
+      },
     },
     profileChat: {
       subscribe: (_parent, args, _context, _info) => {
