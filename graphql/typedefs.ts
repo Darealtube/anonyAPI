@@ -38,13 +38,11 @@ export const typeDefs = gql`
     _id: ID!
     anonymous: User!
     confessee: User!
-    updatedAt: Float
     messages(limit: Int, after: String): MessageConnection
     latestMessage: Message
     anonSeen: Boolean
     confesseeSeen: Boolean
     expiresAt: Float
-    startedAt: Float
   }
 
   type Message {

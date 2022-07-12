@@ -11,7 +11,6 @@ const ChatSchema = new Schema({
   id: ObjectId,
   anonymous: ObjectId,
   confessee: ObjectId,
-  updatedAt: Number,
   anonSeen: {
     type: Boolean,
     default: false,
@@ -20,7 +19,6 @@ const ChatSchema = new Schema({
     type: Boolean,
     default: false,
   },
-  startedAt: Date,
   expiresAt: {
     type: Date,
     default: expiryDate,

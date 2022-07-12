@@ -13,7 +13,7 @@ const UserSchema = new Schema({
   activeChat: ObjectId,
   notifSeen: {
     type: Boolean,
-    default: false,
+    default: true,
   },
 });
 
