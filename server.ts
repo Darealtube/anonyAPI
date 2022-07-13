@@ -6,6 +6,7 @@ import dbConnect from "./utils/dbConnect";
 import { schema } from "./graphql/schema";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
+import depthLimit from "graphql-depth-limit";
 
 (async () => {
   const PORT = process.env.PORT || 3000;
@@ -32,6 +33,7 @@ import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
       return { userID };
     },
     introspection: process.env.NODE_ENV !== "production",
+    validationRules: [depthLimit(6)],
     plugins: [
       // Proper shutdown for the HTTP server.
       ApolloServerPluginDrainHttpServer({ httpServer }),

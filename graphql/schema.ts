@@ -12,13 +12,12 @@ const rateLimitRule = createRateLimitRule({
 export const permissions = shield({
   Mutation: {
     sendMessage: rateLimitRule({ window: "30s", max: 15 }),
+    editUser: rateLimitRule({ window: "3600s", max: 3 }),
+    sendConfessionRequest: rateLimitRule({ window: "3600s", max: 4 }),
   },
 });
 
 export const schema = applyMiddleware(
-  makeExecutableSchema({
-    typeDefs,
-    resolvers,
-  }),
+  makeExecutableSchema({ typeDefs, resolvers }),
   permissions
 );
