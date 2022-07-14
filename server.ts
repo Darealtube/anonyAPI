@@ -28,6 +28,14 @@ import depthLimit from "graphql-depth-limit";
   // Set up ApolloServer.
   const server = new ApolloServer({
     schema,
+    debug: false,
+    formatError: (err) => {
+      // Don't give the specific errors to the client.
+      if (err.message.startsWith("Database Error: ")) {
+        return new Error("Internal server error");
+      }
+      return err;
+    },
     context: ({ req }) => {
       const userID = req.headers["authorization"];
       return { userID };

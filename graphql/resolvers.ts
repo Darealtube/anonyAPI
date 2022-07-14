@@ -2,7 +2,11 @@ import { GraphQLResolveInfo } from "graphql";
 import { DateTime } from "luxon";
 import { ObjectId } from "mongodb";
 import { PubSub } from "graphql-subscriptions";
-import { Context } from "apollo-server-core";
+import {
+  ApolloError,
+  ForbiddenError,
+  UserInputError,
+} from "apollo-server-core";
 import Chat from "../models/Chat";
 import Message from "../models/Message";
 import User from "../models/User";
@@ -13,13 +17,13 @@ import Notification from "../models/Notification";
 
 const pubsub = new PubSub();
 
-type DumbSub = () => AsyncIterator<unknown, any, undefined>;
+type DumbSub = () => ApolloError | AsyncIterator<unknown, any, undefined>;
 type SmartSub = (
   parent?: any,
   args?: any,
-  ctx?: Context,
+  ctx?: any,
   info?: GraphQLResolveInfo
-) => AsyncIterator<unknown, any, undefined>;
+) => ApolloError | AsyncIterator<unknown, any, undefined>;
 
 type SubscriptionFn = {
   subscribe: DumbSub | SmartSub;
@@ -28,7 +32,7 @@ type SubscriptionFn = {
 type ResolverFn = (
   parent: any,
   args: any,
-  ctx: Context,
+  ctx: any,
   info: GraphQLResolveInfo
 ) => any;
 
@@ -120,6 +124,9 @@ export const resolvers: Resolvers = {
       return await User.findOne({ _id: parent.confessee });
     },
     messages: async (parent, args, _context, _info) => {
+      if (!parent._id) {
+        return new ForbiddenError("Chat does not exist");
+      }
       const totalCount = await Message.count({ chat: parent._id });
       const messages = await Message.find({
         chat: parent._id,
@@ -160,7 +167,12 @@ export const resolvers: Resolvers = {
     getUser: async (_parent, args, _context, _info) => {
       return await User.findOne({ name: args.name });
     },
-    getProfile: async (_parent, args, _context, _info) => {
+    getProfile: async (_parent, args, context, _info) => {
+      if (context.userID !== args.id) {
+        return new ForbiddenError(
+          "You are forbidden to access someone else's account."
+        );
+      }
       return await User.findById(args.id);
     },
     getProfileActiveChat: async (_parent, args, _context, _info) => {
@@ -183,8 +195,13 @@ export const resolvers: Resolvers = {
       );
       return true;
     },
-    editUser: async (_parent, args, _context, _info) => {
+    editUser: async (_parent, args, context, _info) => {
       const { userId, ...updatedFields } = args;
+      if (context.userID !== userId) {
+        return new ForbiddenError(
+          "You are not allowed to edit someone else's account."
+        );
+      }
       await User.updateOne({ _id: userId }, updatedFields, { new: true });
       return true;
     },
@@ -205,6 +222,9 @@ export const resolvers: Resolvers = {
     },
     acceptConfessionRequest: async (_parent, args, _context, _info) => {
       const request = await Request.findByIdAndDelete(args.requestID);
+      if (!request) {
+        return new UserInputError("Request does not exist.");
+      }
       const newChat = await Chat.create({
         anonymous: request.anonymous,
         confessee: request.receiver,
@@ -228,11 +248,11 @@ export const resolvers: Resolvers = {
       return newChat;
     },
     sendMessage: async (_parent, args, _context, _info) => {
+      //
       const message = await Message.create(args);
       const updatedChat = await Chat.findByIdAndUpdate(
         args.chat,
         {
-          updatedAt: DateTime.utc(),
           ...(args.anonymous
             ? { anonSeen: true, confesseeSeen: false }
             : { confesseeSeen: true, anonSeen: false }),
@@ -297,6 +317,9 @@ export const resolvers: Resolvers = {
   Subscription: {
     newMessage: {
       subscribe: (_parent, args, _context, _info) => {
+        if (!args.chat) {
+          return new UserInputError("Chat does not exist");
+        }
         return pubsub.asyncIterator([`${args.chat}_NEW_MESSAGE`]);
       },
     },
