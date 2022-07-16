@@ -1,4 +1,5 @@
 import { MongoClient } from "mongodb";
+import "dotenv/config";
 import mongoose from "mongoose";
 
 type mongooseConnection = {
@@ -15,11 +16,10 @@ declare global {
   }
 }
 
-const MONGODB_URI =
-  "mongodb+srv://New_John_Doe:tk9YLFaCL1PHxYRu@cluster0.kkxjp.mongodb.net/AnonyLove?authSource=admin&replicaSet=atlas-649tzi-shard-0&w=majority&readPreference=primary&appname=MongoDB%20Compass&retryWrites=true&ssl=true";
+const MONGODB_URI = process.env.MONGODB_URI;
 
 if (!MONGODB_URI) {
-  console.log(process.env.MONGODB_URI);
+  console.log(MONGODB_URI)
   throw new Error(
     "Please define the MONGODB_URI environment variable inside .env.local"
   );

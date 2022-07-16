@@ -168,10 +168,8 @@ export const resolvers: Resolvers = {
       return await User.findOne({ name: args.name });
     },
     getProfile: async (_parent, args, context, _info) => {
-      if (context.userID !== args.id) {
-        return new ForbiddenError(
-          "You are forbidden to access someone else's account."
-        );
+      if (!context.userID) {
+        return new ForbiddenError("You do not have an account.");
       }
       return await User.findById(args.id);
     },
@@ -228,14 +226,10 @@ export const resolvers: Resolvers = {
       const newChat = await Chat.create({
         anonymous: request.anonymous,
         confessee: request.receiver,
-        startedAt: DateTime.utc(),
       });
       await User.updateMany(
         {
-          $or: [
-            { anonymous: request.anonymous },
-            { confessee: request.receiver },
-          ],
+          $or: [{ _id: request.anonymous }, { _id: request.receiver }],
         },
         { activeChat: newChat._id }
       );
@@ -248,7 +242,6 @@ export const resolvers: Resolvers = {
       return newChat;
     },
     sendMessage: async (_parent, args, _context, _info) => {
-      //
       const message = await Message.create(args);
       const updatedChat = await Chat.findByIdAndUpdate(
         args.chat,

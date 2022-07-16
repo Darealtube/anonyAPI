@@ -14,6 +14,7 @@ export const permissions = shield({
     sendMessage: rateLimitRule({ window: "30s", max: 15 }),
     editUser: rateLimitRule({ window: "3600s", max: 3 }),
     sendConfessionRequest: rateLimitRule({ window: "3600s", max: 4 }),
+    rejectConfessionRequest: rateLimitRule({ window: "10s", max: 1 }),
   },
 });
 
