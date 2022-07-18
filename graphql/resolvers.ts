@@ -1,5 +1,4 @@
 import { GraphQLResolveInfo } from "graphql";
-import { DateTime } from "luxon";
 import { ObjectId } from "mongodb";
 import { PubSub } from "graphql-subscriptions";
 import {
@@ -193,13 +192,7 @@ export const resolvers: Resolvers = {
       );
       return true;
     },
-    editUser: async (_parent, args, context, _info) => {
-      const { userId, ...updatedFields } = args;
-      if (context.userID !== userId) {
-        return new ForbiddenError(
-          "You are not allowed to edit someone else's account."
-        );
-      }
+    editUser: async (_parent, { userId, ...updatedFields }, _context, _info) => {
       await User.updateOne({ _id: userId }, updatedFields, { new: true });
       return true;
     },
