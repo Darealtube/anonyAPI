@@ -3,7 +3,7 @@ import { resolvers } from "./resolvers";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { applyMiddleware } from "graphql-middleware";
 import { createRateLimitRule } from "graphql-rate-limit";
-import { and, not, rule, shield } from "graphql-shield";
+import { and, rule, shield } from "graphql-shield";
 import User from "../models/User";
 
 const rateLimitRule = createRateLimitRule({
@@ -27,7 +27,7 @@ const ownUser = rule({ cache: "contextual" })(
 export const permissions = shield({
   Mutation: {
     sendMessage: rateLimitRule({ window: "30s", max: 15 }),
-    editUser: and(isAuthenticated, not(ownUser)),
+    editUser: and(isAuthenticated, ownUser),
     sendConfessionRequest: rateLimitRule({ window: "3600s", max: 4 }),
   },
 });
