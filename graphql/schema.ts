@@ -19,7 +19,8 @@ const isAuthenticated = rule({ cache: "contextual" })(
 
 const ownUser = rule({ cache: "contextual" })(
   async (_parent, { userId }, ctx, _info) => {
-    return ctx.user === userId;
+    const user = await User.findById(ctx.userID);
+    return user === userId;
   }
 );
 
