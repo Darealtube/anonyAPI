@@ -19,18 +19,14 @@ const isAuthenticated = rule({ cache: "contextual" })(
 
 const ownUser = rule({ cache: "contextual" })(
   async (_parent, { userId }, ctx, _info) => {
-    return ctx.userID === userId;
+    return ctx.user === userId;
   }
 );
 
 export const permissions = shield({
   Mutation: {
     sendMessage: rateLimitRule({ window: "30s", max: 15 }),
-    editUser: and(
-      isAuthenticated,
-      ownUser,
-      rateLimitRule({ window: "3600s", max: 3 })
-    ),
+    editUser: and(isAuthenticated, ownUser),
     sendConfessionRequest: rateLimitRule({ window: "3600s", max: 4 }),
   },
 });
