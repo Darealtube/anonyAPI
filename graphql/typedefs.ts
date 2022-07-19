@@ -88,9 +88,9 @@ export const typeDefs = gql`
 
   type Query {
     getUser(name: String!): User
-    getProfile(id: ID!): User
+    getProfile(profileId: ID!): User
     searchUser(key: String): [User]
-    getProfileActiveChat(id: ID!): Chat
+    getProfileActiveChat(profileId: ID!): Chat
   }
 
   type Mutation {
@@ -108,20 +108,20 @@ export const typeDefs = gql`
     seenChat(person: String!, chat: ID!): Boolean
     endChat(chat: ID!): Boolean
     editUser(
-      userId: ID!
+      profileId: ID!
       name: String!
       image: String
       cover: String
       bio: String
       status: String
     ): Boolean
-    seenNotification(userId: ID!): Boolean
+    seenNotification(profileId: ID!): Boolean
     deleteNotification(notifID: ID!): Boolean
   }
 
   type Subscription {
     newMessage(chat: ID!): Message
-    notifSeen(receiver: ID!): Boolean
-    profileChat(user: ID!): Chat
+    notifSeen(profileId: ID!): Boolean
+    profileChat(profileId: ID!): Chat
   }
 `;

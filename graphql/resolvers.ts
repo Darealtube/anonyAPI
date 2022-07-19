@@ -166,15 +166,12 @@ export const resolvers: Resolvers = {
     getUser: async (_parent, args, _context, _info) => {
       return await User.findOne({ name: args.name });
     },
-    getProfile: async (_parent, args, context, _info) => {
-      if (!context.userID) {
-        return new ForbiddenError("You do not have an account.");
-      }
-      return await User.findById(args.id);
+    getProfile: async (_parent, args, _context, _info) => {
+      return await User.findById(args.profileId);
     },
     getProfileActiveChat: async (_parent, args, _context, _info) => {
       return await Chat.findOne({
-        $or: [{ anonymous: args.id }, { confessee: args.id }],
+        $or: [{ anonymous: args.profileId }, { confessee: args.profileId }],
       });
     },
   },
@@ -192,8 +189,13 @@ export const resolvers: Resolvers = {
       );
       return true;
     },
-    editUser: async (_parent, { userId, ...updatedFields }, _context, _info) => {
-      await User.updateOne({ _id: userId }, updatedFields, { new: true });
+    editUser: async (
+      _parent,
+      { profileId, ...updatedFields },
+      _context,
+      _info
+    ) => {
+      await User.updateOne({ _id: profileId }, updatedFields, { new: true });
       return true;
     },
     sendConfessionRequest: async (_parent, args, _context, _info) => {
@@ -290,8 +292,8 @@ export const resolvers: Resolvers = {
       return true;
     },
     seenNotification: async (_parent, args, _context, _info) => {
-      await User.updateOne({ _id: args.userId }, { notifSeen: true });
-      await pubsub.publish(`NOTIF_SEEN_${args.userId}`, { notifSeen: true });
+      await User.updateOne({ _id: args.profileId }, { notifSeen: true });
+      await pubsub.publish(`NOTIF_SEEN_${args.profileId}`, { notifSeen: true });
       return true;
     },
     deleteNotification: async (_parent, args, _context, _info) => {
@@ -311,12 +313,12 @@ export const resolvers: Resolvers = {
     },
     profileChat: {
       subscribe: (_parent, args, _context, _info) => {
-        return pubsub.asyncIterator([`PROFILE_CHAT_${args.user}`]);
+        return pubsub.asyncIterator([`PROFILE_CHAT_${args.profileId}`]);
       },
     },
     notifSeen: {
       subscribe: (_parent, args, _context, _info) => {
-        return pubsub.asyncIterator([`NOTIF_SEEN_${args.receiver}`]);
+        return pubsub.asyncIterator([`NOTIF_SEEN_${args.profileId}`]);
       },
     },
   },
