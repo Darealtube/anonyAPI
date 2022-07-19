@@ -18,16 +18,16 @@ const isAuthenticated = rule({ cache: "contextual" })(
 );
 
 const ownProfile = rule({ cache: "contextual" })(
-  async (parent, args, ctx, _info) => {
-    return ctx.userID === parent._id || ctx.userID === args.profileId;
+  async (_parent, args, ctx, _info) => {
+    return ctx.userID === args.profileId;
   }
 );
 
 export const permissions = shield({
   User: {
-    sentConfessionRequests: and(isAuthenticated, ownProfile),
-    receivedConfessionRequests: and(isAuthenticated, ownProfile),
-    userNotifications: and(isAuthenticated, ownProfile),
+    sentConfessionRequests: isAuthenticated,
+    receivedConfessionRequests: isAuthenticated,
+    userNotifications: isAuthenticated,
   },
   Query: {
     getProfile: and(isAuthenticated, ownProfile),
@@ -66,7 +66,6 @@ export const permissions = shield({
     seenNotification: isAuthenticated,
     deleteNotification: isAuthenticated,
   },
-
   Subscription: {
     profileChat: and(isAuthenticated, ownProfile),
     notifSeen: and(isAuthenticated, ownProfile),
