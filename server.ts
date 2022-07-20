@@ -38,6 +38,7 @@ import depthLimit from "graphql-depth-limit";
     },
     context: ({ req }) => {
       const userID = req.headers["authorization"];
+      console.log(req.headers);
       return { userID };
     },
     introspection: process.env.NODE_ENV !== "production",

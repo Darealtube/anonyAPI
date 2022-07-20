@@ -24,51 +24,22 @@ const ownProfile = rule({ cache: "contextual" })(
 );
 
 export const permissions = shield({
-  User: {
-    sentConfessionRequests: isAuthenticated,
-    receivedConfessionRequests: isAuthenticated,
-    userNotifications: isAuthenticated,
-  },
-  Query: {
-    getProfile: and(isAuthenticated, ownProfile),
-    getProfileActiveChat: and(isAuthenticated, ownProfile),
-  },
   Mutation: {
-    sendMessage: and(
-      isAuthenticated,
-      rateLimitRule({
-        window: "30s",
-        max: 15,
-        message: "Slow down. Don't get too excited.",
-      })
-    ),
-    editUser: and(
-      isAuthenticated,
-      ownProfile,
-      rateLimitRule({
-        window: "3600s",
-        max: 3,
-        message: "You are being rate limited. Try again in an hour.",
-      })
-    ),
-    sendConfessionRequest: and(
-      isAuthenticated,
-      rateLimitRule({
-        window: "3600s",
-        max: 4,
-        message: "You are being rate limited. Try again in an hour.",
-      })
-    ),
-    rejectConfessionRequest: isAuthenticated,
-    acceptConfessionRequest: isAuthenticated,
-    seenChat: isAuthenticated,
-    endChat: isAuthenticated,
-    seenNotification: isAuthenticated,
-    deleteNotification: isAuthenticated,
-  },
-  Subscription: {
-    profileChat: and(isAuthenticated, ownProfile),
-    notifSeen: and(isAuthenticated, ownProfile),
+    sendMessage: rateLimitRule({
+      window: "30s",
+      max: 15,
+      message: "Slow down. Don't get too excited.",
+    }),
+    editUser: rateLimitRule({
+      window: "3600s",
+      max: 3,
+      message: "You are being rate limited. Try again in an hour.",
+    }),
+    sendConfessionRequest: rateLimitRule({
+      window: "3600s",
+      max: 4,
+      message: "You are being rate limited. Try again in an hour.",
+    }),
   },
 });
 
