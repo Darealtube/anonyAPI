@@ -20,18 +20,25 @@ import { Decursorify as decrypt } from "./utils/cursorify";
   const wsServer = new WebSocketServer({
     server: httpServer,
     path: "/graphql",
-    verifyClient: (info, next) => {
-      console.log(info.req.headers);
+    /* verifyClient: (info, next) => {
       if (!info.req.headers["cookie"]) {
         return next(false); // the connection is not allowed
       }
       next(true); // the connection is allowed
-    },
+    }, */
   });
 
   // Save the returned server's info so we can shutdown this server later
   // eslint-disable-next-line react-hooks/rules-of-hooks
-  const serverCleanup = useServer({ schema }, wsServer);
+  const serverCleanup = useServer(
+    {
+      schema,
+      onConnect(ctx) {
+        console.log(ctx.extra.request.headers);
+      },
+    },
+    wsServer
+  );
 
   // Set up ApolloServer.
   const server = new ApolloServer({
