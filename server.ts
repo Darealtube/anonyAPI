@@ -21,7 +21,7 @@ import { Decursorify as decrypt } from "./utils/cursorify";
     server: httpServer,
     path: "/graphql",
     verifyClient: (info, next) => {
-      console.log(info.req.headers.cookie);
+      console.log(info.origin, info.secure);
       if (!info.req.headers["cookie"]) {
         return next(false); // the connection is not allowed
       }
