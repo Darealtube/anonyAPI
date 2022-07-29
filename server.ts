@@ -7,6 +7,7 @@ import { schema } from "./graphql/schema";
 import { useServer } from "graphql-ws/lib/use/ws";
 import { ApolloServerPluginDrainHttpServer } from "apollo-server-core";
 import depthLimit from "graphql-depth-limit";
+import { Decursorify as decrypt } from "./utils/cursorify";
 
 (async () => {
   const PORT = process.env.PORT || 3000;
@@ -19,6 +20,13 @@ import depthLimit from "graphql-depth-limit";
   const wsServer = new WebSocketServer({
     server: httpServer,
     path: "/graphql",
+    verifyClient: (info, next) => {
+      console.log(info.req.headers);
+      if (!info.req.headers["cookie"]) {
+        return next(false); // the connection is not allowed
+      }
+      next(true); // the connection is allowed
+    },
   });
 
   // Save the returned server's info so we can shutdown this server later
@@ -37,9 +45,13 @@ import depthLimit from "graphql-depth-limit";
       return err;
     },
     context: ({ req }) => {
-      const userID = req.headers["authorization"];
-      console.log(req.headers);
-      return { userID };
+      let user: string | undefined;
+      const auth = req.headers["authorization"];
+      const userID = (auth as string)?.replace("Basic ", "");
+      if (userID) {
+        user = decrypt(userID);
+      }
+      return { userID: user };
     },
     introspection: process.env.NODE_ENV !== "production",
     validationRules: [depthLimit(6)],
@@ -74,7 +86,7 @@ import depthLimit from "graphql-depth-limit";
       ],
       methods: "GET,OPTIONS,PATCH,DELETE,POST,PUT",
       allowedHeaders:
-        "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, authorization",
+        "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, Authorization",
     },
   });
 

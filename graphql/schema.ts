@@ -11,35 +11,60 @@ const rateLimitRule = createRateLimitRule({
 });
 
 const isAuthenticated = rule({ cache: "contextual" })(
-  async (_parent, _args, ctx, _info) => {
-    const user = await User.findById(ctx.userID);
+  async (_parent, _args, { userID }, _info) => {
+    const user = await User.findById(userID);
     return user !== null;
   }
 );
 
 const ownProfile = rule({ cache: "contextual" })(
-  async (_parent, args, ctx, _info) => {
-    return ctx.userID === args.profileId;
+  async (_parent, args, { userID }, _info) => {
+    return userID === args.profileId;
   }
 );
 
 export const permissions = shield({
+  User: {
+    sentConfessionRequests: isAuthenticated,
+    receivedConfessionRequests: isAuthenticated,
+    userNotifications: isAuthenticated,
+  },
+  Query: {
+    getProfile: and(isAuthenticated, ownProfile),
+    getProfileActiveChat: and(isAuthenticated, ownProfile),
+  },
   Mutation: {
-    sendMessage: rateLimitRule({
-      window: "30s",
-      max: 15,
-      message: "Slow down. Don't get too excited.",
-    }),
-    editUser: rateLimitRule({
-      window: "3600s",
-      max: 3,
-      message: "You are being rate limited. Try again in an hour.",
-    }),
-    sendConfessionRequest: rateLimitRule({
-      window: "3600s",
-      max: 4,
-      message: "You are being rate limited. Try again in an hour.",
-    }),
+    sendMessage: and(
+      isAuthenticated,
+      rateLimitRule({
+        window: "30s",
+        max: 15,
+        message: "Slow down. Don't get too excited.",
+      })
+    ),
+    editUser: and(
+      isAuthenticated,
+      ownProfile,
+      rateLimitRule({
+        window: "3600s",
+        max: 3,
+        message: "You are being rate limited. Try again in an hour.",
+      })
+    ),
+    sendConfessionRequest: and(
+      isAuthenticated,
+      rateLimitRule({
+        window: "3600s",
+        max: 4,
+        message: "You are being rate limited. Try again in an hour.",
+      })
+    ),
+    rejectConfessionRequest: isAuthenticated,
+    acceptConfessionRequest: isAuthenticated,
+    seenChat: isAuthenticated,
+    endChat: isAuthenticated,
+    seenNotification: isAuthenticated,
+    deleteNotification: isAuthenticated,
   },
 });
 
