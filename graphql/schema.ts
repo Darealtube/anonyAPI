@@ -23,6 +23,19 @@ const ownProfile = rule({ cache: "contextual" })(
   }
 );
 
+const authenticatedSubscription = rule({ cache: "contextual" })(
+  async (_parent, _args, { subUserID }, _info) => {
+    const user = await User.findById(subUserID);
+    return user !== null;
+  }
+);
+
+const ownSubscription = rule({ cache: "contextual" })(
+  async (_parent, args, { subUserID }, _info) => {
+    return subUserID === args.profileId;
+  }
+);
+
 export const permissions = shield({
   User: {
     sentConfessionRequests: isAuthenticated,
@@ -65,6 +78,10 @@ export const permissions = shield({
     endChat: isAuthenticated,
     seenNotification: isAuthenticated,
     deleteNotification: isAuthenticated,
+  },
+  Subscription: {
+    profileChat: and(authenticatedSubscription, ownSubscription),
+    notifSeen: and(authenticatedSubscription, ownSubscription),
   },
 });
 

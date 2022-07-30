@@ -20,12 +20,6 @@ import { Decursorify as decrypt } from "./utils/cursorify";
   const wsServer = new WebSocketServer({
     server: httpServer,
     path: "/graphql",
-    /* verifyClient: (info, next) => {
-      if (!info.req.headers["cookie"]) {
-        return next(false); // the connection is not allowed
-      }
-      next(true); // the connection is allowed
-    }, */
   });
 
   // Save the returned server's info so we can shutdown this server later
@@ -33,8 +27,8 @@ import { Decursorify as decrypt } from "./utils/cursorify";
   const serverCleanup = useServer(
     {
       schema,
-      onConnect(ctx) {
-        console.log(ctx.extra.request.headers);
+      context: (ctx, _msg, _args) => {
+        return { subUserID: ctx.connectionParams?.Authorization };
       },
     },
     wsServer
