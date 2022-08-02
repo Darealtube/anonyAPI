@@ -42,7 +42,7 @@ export const typeDefs = gql`
     latestMessage: Message
     anonSeen: Boolean
     confesseeSeen: Boolean
-    expiresAt: Float
+    chatEnded: Boolean
   }
 
   type Message {
@@ -52,7 +52,7 @@ export const typeDefs = gql`
     sender: User
     message: String!
     anonymous: Boolean
-    expiresAt: Float
+    endRequestMsg: Boolean!
   }
 
   type MessageConnection {
@@ -106,6 +106,9 @@ export const typeDefs = gql`
       anonymous: Boolean!
     ): Message
     seenChat(person: String!, chat: ID!): Boolean
+    endChatRequest(chat: ID!, sender: ID!, anonymous: Boolean!): Message
+    acceptEndChat(chat: ID!): Boolean
+    rejectEndChat(chat: ID!, sender: ID!, anonymous: Boolean!): Message
     endChat(chat: ID!): Boolean
     editUser(
       profileId: ID!

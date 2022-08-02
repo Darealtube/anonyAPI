@@ -276,6 +276,66 @@ export const resolvers: Resolvers = {
       });
       return true;
     },
+    endChatRequest: async (_parent, args, _context, _info) => {
+      const message = await Message.create({
+        ...args,
+        endRequestMsg: true,
+        message: "I would like to end the confession.",
+      });
+      const updatedChat = await Chat.findByIdAndUpdate(
+        args.chat,
+        {
+          ...(args.anonymous
+            ? { anonSeen: true, confesseeSeen: false }
+            : { confesseeSeen: true, anonSeen: false }),
+        },
+        { new: true }
+      );
+      await pubsub.publish(`${updatedChat._id}_NEW_MESSAGE`, {
+        newMessage: message,
+      });
+      await pubsub.publish(`PROFILE_CHAT_${updatedChat.confessee}`, {
+        profileChat: updatedChat,
+      });
+      await pubsub.publish(`PROFILE_CHAT_${updatedChat.anonymous}`, {
+        profileChat: updatedChat,
+      });
+      return message;
+    },
+    rejectEndChat: async (_parent, args, _context, _info) => {
+      const message = await Message.create({
+        ...args,
+        message: "Let's not end this yet.",
+      });
+      const updatedChat = await Chat.findByIdAndUpdate(
+        args.chat,
+        {
+          ...(args.anonymous
+            ? { anonSeen: true, confesseeSeen: false }
+            : { confesseeSeen: true, anonSeen: false }),
+          $inc: { endAttempts: 1 },
+        },
+        { new: true }
+      );
+      await pubsub.publish(`${updatedChat._id}_NEW_MESSAGE`, {
+        newMessage: message,
+      });
+      await pubsub.publish(`PROFILE_CHAT_${updatedChat.confessee}`, {
+        profileChat: updatedChat,
+      });
+      await pubsub.publish(`PROFILE_CHAT_${updatedChat.anonymous}`, {
+        profileChat: updatedChat,
+      });
+      return message;
+    },
+    acceptEndChat: async (_parent, args, _context, _info) => {
+      await Chat.findByIdAndUpdate(
+        args.chat,
+        { chatEnded: true },
+        { new: true }
+      );
+      return true;
+    },
     endChat: async (_parent, args, _context, _info) => {
       const deletedChat = await Chat.findByIdAndDelete(args.chat);
       await Message.deleteMany({ chat: deletedChat._id });

@@ -13,6 +13,10 @@ const MessageSchema = new Schema({
   sender: String,
   message: String,
   anonymous: Boolean,
+  endRequestMsg: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 export default mongoose.models.Message ||

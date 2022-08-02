@@ -1,16 +1,16 @@
 import { ObjectId } from "mongodb";
 import { Schema } from "mongoose";
 import mongoose from "mongoose";
-import { DateTime } from "luxon";
-
-const expiryDate = () => {
-  return DateTime.utc().plus({ minutes: 15 });
-};
 
 const ChatSchema = new Schema({
   id: ObjectId,
   anonymous: ObjectId,
   confessee: ObjectId,
+  endAttempts: Number,
+  chatEnded: {
+    type: Boolean,
+    default: false,
+  },
   anonSeen: {
     type: Boolean,
     default: false,
@@ -18,10 +18,6 @@ const ChatSchema = new Schema({
   confesseeSeen: {
     type: Boolean,
     default: false,
-  },
-  expiresAt: {
-    type: Date,
-    default: expiryDate,
   },
 });
 
