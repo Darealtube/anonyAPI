@@ -43,6 +43,7 @@ export const typeDefs = gql`
     anonSeen: Boolean
     confesseeSeen: Boolean
     chatEnded: Boolean
+    endAttempts: Int
   }
 
   type Message {
