@@ -256,7 +256,7 @@ export const resolvers: Resolvers = {
       await pubsub.publish(`PROFILE_CHAT_${updatedChat.anonymous}`, {
         profileChat: updatedChat,
       });
-      return message;
+      return true;
     },
     seenChat: async (_parent, args, _context, _info) => {
       const updatedChat = await Chat.findByIdAndUpdate(

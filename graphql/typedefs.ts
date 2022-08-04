@@ -105,7 +105,7 @@ export const typeDefs = gql`
       sender: ID!
       message: String!
       anonymous: Boolean!
-    ): Message
+    ): Boolean
     seenChat(person: String!, chat: ID!): Boolean
     endChatRequest(chat: ID!, sender: ID!, anonymous: Boolean!): Message
     acceptEndChat(chat: ID!): Boolean
