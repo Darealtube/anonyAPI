@@ -75,6 +75,23 @@ export const permissions = shield({
     rejectConfessionRequest: isAuthenticated,
     acceptConfessionRequest: isAuthenticated,
     seenChat: isAuthenticated,
+    endChatRequest: and(
+      isAuthenticated,
+      rateLimitRule({
+        window: "300s",
+        max: 1,
+        message: "You can request again in 5 minutes.",
+      })
+    ),
+    rejectEndChat: and(
+      isAuthenticated,
+      rateLimitRule({
+        window: "300s",
+        max: 1,
+        message: "You're rejecting too much.",
+      })
+    ),
+    acceptEndChat: isAuthenticated,
     endChat: isAuthenticated,
     seenNotification: isAuthenticated,
     deleteNotification: isAuthenticated,
