@@ -43,6 +43,7 @@ export const typeDefs = gql`
     anonSeen: Boolean
     confesseeSeen: Boolean
     chatEnded: Boolean
+    expireChatAt: Float
     endAttempts: Int
   }
 
@@ -127,5 +128,6 @@ export const typeDefs = gql`
     newMessage(chat: ID!): Message
     notifSeen(profileId: ID!): Boolean
     profileChat(profileId: ID!): Chat
+    activeChatEnded(chatId: ID!): Boolean
   }
 `;

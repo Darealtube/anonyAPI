@@ -334,6 +334,9 @@ export const resolvers: Resolvers = {
         { chatEnded: true },
         { new: true }
       );
+      await pubsub.publish(`CHAT_ENDED_${args.chat}`, {
+        activeChatEnded: true,
+      });
       return true;
     },
     endChat: async (_parent, args, _context, _info) => {
@@ -379,6 +382,11 @@ export const resolvers: Resolvers = {
     notifSeen: {
       subscribe: (_parent, args, _context, _info) => {
         return pubsub.asyncIterator([`NOTIF_SEEN_${args.profileId}`]);
+      },
+    },
+    activeChatEnded: {
+      subscribe: (_parent, args, _context, _info) => {
+        return pubsub.asyncIterator([`CHAT_ENDED_${args.chatId}`]);
       },
     },
   },
