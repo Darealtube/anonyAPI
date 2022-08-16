@@ -11,6 +11,7 @@ export const typeDefs = gql`
     status: String
     activeChat: Chat
     notifSeen: Boolean
+    requestsDisabled: Boolean
     sentConfessionRequests(limit: Int, after: String): RequestConnection
     receivedConfessionRequests(limit: Int, after: String): RequestConnection
     userSentRequest(from: ID!): Boolean
@@ -119,6 +120,7 @@ export const typeDefs = gql`
       cover: String
       bio: String
       status: String
+      requestsDisabled: Boolean
     ): Boolean
     seenNotification(profileId: ID!): Boolean
     deleteNotification(notifID: ID!): Boolean

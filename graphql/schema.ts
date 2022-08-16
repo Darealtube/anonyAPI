@@ -23,6 +23,13 @@ const ownProfile = rule({ cache: "contextual" })(
   }
 );
 
+const requestsEnabled = rule({ cache: "contextual" })(
+  async (_parent, _args, { userID }, _info) => {
+    const user = await User.findById(userID);
+    return user.requestsDisabled === false;
+  }
+);
+
 const authenticatedSubscription = rule({ cache: "contextual" })(
   async (_parent, _args, { subUserID }, _info) => {
     const user = await User.findById(subUserID);
@@ -66,6 +73,7 @@ export const permissions = shield({
     ),
     sendConfessionRequest: and(
       isAuthenticated,
+      requestsEnabled,
       rateLimitRule({
         window: "3600s",
         max: 4,

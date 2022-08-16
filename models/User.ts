@@ -11,6 +11,10 @@ const UserSchema = new Schema({
   bio: String,
   status: String,
   activeChat: ObjectId,
+  requestsDisabled: {
+    type: Boolean,
+    default: false,
+  },
   notifSeen: {
     type: Boolean,
     default: true,
