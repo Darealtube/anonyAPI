@@ -147,6 +147,16 @@ export const resolvers: Resolvers = {
         .limit(1);
       return latestMessage[0];
     },
+    status: async (parent, _args, _context, _info) => {
+      if (!parent.status.endRequester)
+        return { ...parent.status, endRequester: null };
+      const user = await User.findById(parent.status.endRequester).lean();
+      return (parent.anonymous as ObjectId).equals(
+        parent.status.endRequester as ObjectId
+      )
+        ? { ...parent.status, endRequester: "Anonymous" }
+        : { ...parent.status, endRequester: user.name };
+    },
   },
   Message: {
     sender: async (parent, _args, _context, _info) => {
@@ -205,8 +215,14 @@ export const resolvers: Resolvers = {
         accepted: false,
       });
       await Notification.create({ receiver: args.receiver });
-      await User.updateOne({ _id: args.receiver }, { notifSeen: false });
-      await pubsub.publish(`NOTIF_SEEN_${args.receiver}`, { notifSeen: false });
+      const user = await User.findByIdAndUpdate(
+        args.receiver,
+        {
+          notifSeen: false,
+        },
+        { new: true }
+      );
+      await pubsub.publish(`NOTIF_SEEN_${args.receiver}`, { notifSeen: user });
       return sentRequest;
     },
     rejectConfessionRequest: async (_parent, args, _context, _info) => {
@@ -277,65 +293,43 @@ export const resolvers: Resolvers = {
       return true;
     },
     endChatRequest: async (_parent, args, _context, _info) => {
-      const message = await Message.create({
-        ...args,
-        endRequestMsg: true,
-        message: "I would like to end the confession.",
-      });
       const updatedChat = await Chat.findByIdAndUpdate(
         args.chat,
-        {
-          ...(args.anonymous
-            ? { anonSeen: true, confesseeSeen: false }
-            : { confesseeSeen: true, anonSeen: false }),
-        },
+        { status: { endRequesting: true, endRequester: args.requester } },
         { new: true }
       );
-      await pubsub.publish(`${updatedChat._id}_NEW_MESSAGE`, {
-        newMessage: message,
+      await pubsub.publish(`CHAT_STATUS_${args.chat}`, {
+        activeChatStatus: updatedChat,
       });
-      await pubsub.publish(`PROFILE_CHAT_${updatedChat.confessee}`, {
-        profileChat: updatedChat,
-      });
-      await pubsub.publish(`PROFILE_CHAT_${updatedChat.anonymous}`, {
-        profileChat: updatedChat,
-      });
-      return message;
+      return true;
     },
     rejectEndChat: async (_parent, args, _context, _info) => {
-      const message = await Message.create({
-        ...args,
-        message: "Let's not end this yet.",
-      });
       const updatedChat = await Chat.findByIdAndUpdate(
         args.chat,
         {
-          ...(args.anonymous
-            ? { anonSeen: true, confesseeSeen: false }
-            : { confesseeSeen: true, anonSeen: false }),
-          $inc: { endAttempts: 1 },
+          status: {
+            endRequesting: false,
+            endRequester: null,
+            $inc: { endAttempts: 1 },
+          },
         },
         { new: true }
       );
-      await pubsub.publish(`${updatedChat._id}_NEW_MESSAGE`, {
-        newMessage: message,
+      await pubsub.publish(`CHAT_STATUS_${args.chat}`, {
+        activeChatStatus: updatedChat,
       });
-      await pubsub.publish(`PROFILE_CHAT_${updatedChat.confessee}`, {
-        profileChat: updatedChat,
-      });
-      await pubsub.publish(`PROFILE_CHAT_${updatedChat.anonymous}`, {
-        profileChat: updatedChat,
-      });
-      return message;
+      return true;
     },
     acceptEndChat: async (_parent, args, _context, _info) => {
-      await Chat.findByIdAndUpdate(
+      const updatedChat = await Chat.findByIdAndUpdate(
         args.chat,
-        { chatEnded: true },
+        {
+          status: { chatEnded: true, endRequesting: false, endRequester: null },
+        },
         { new: true }
       );
-      await pubsub.publish(`CHAT_ENDED_${args.chat}`, {
-        activeChatEnded: true,
+      await pubsub.publish(`CHAT_STATUS_${args.chat}`, {
+        activeChatStatus: updatedChat,
       });
       return true;
     },
@@ -354,9 +348,15 @@ export const resolvers: Resolvers = {
       });
       return true;
     },
-    seenNotification: async (_parent, args, _context, _info) => {
-      await User.updateOne({ _id: args.profileId }, { notifSeen: true });
-      await pubsub.publish(`NOTIF_SEEN_${args.profileId}`, { notifSeen: true });
+    seeNotification: async (_parent, args, _context, _info) => {
+      const user = await User.findByIdAndUpdate(
+        args.profileId,
+        {
+          notifSeen: true,
+        },
+        { new: true }
+      );
+      await pubsub.publish(`NOTIF_SEEN_${args.profileId}`, { notifSeen: user });
       return true;
     },
     deleteNotification: async (_parent, args, _context, _info) => {
@@ -384,9 +384,9 @@ export const resolvers: Resolvers = {
         return pubsub.asyncIterator([`NOTIF_SEEN_${args.profileId}`]);
       },
     },
-    activeChatEnded: {
+    activeChatStatus: {
       subscribe: (_parent, args, _context, _info) => {
-        return pubsub.asyncIterator([`CHAT_ENDED_${args.chatId}`]);
+        return pubsub.asyncIterator([`CHAT_STATUS_${args.chatId}`]);
       },
     },
   },

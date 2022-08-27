@@ -43,8 +43,14 @@ export const typeDefs = gql`
     latestMessage: Message
     anonSeen: Boolean
     confesseeSeen: Boolean
-    chatEnded: Boolean
+    status: ChatStatus
     expireChatAt: Float
+  }
+
+  type ChatStatus {
+    endRequesting: Boolean
+    endRequester: String
+    chatEnded: Boolean
     endAttempts: Int
   }
 
@@ -109,9 +115,9 @@ export const typeDefs = gql`
       anonymous: Boolean!
     ): Boolean
     seenChat(person: String!, chat: ID!): Boolean
-    endChatRequest(chat: ID!, sender: ID!, anonymous: Boolean!): Message
+    endChatRequest(chat: ID!, requester: ID!): Boolean
+    rejectEndChat(chat: ID!): Boolean
     acceptEndChat(chat: ID!): Boolean
-    rejectEndChat(chat: ID!, sender: ID!, anonymous: Boolean!): Message
     endChat(chat: ID!): Boolean
     editUser(
       profileId: ID!
@@ -122,14 +128,14 @@ export const typeDefs = gql`
       status: String
       requestsDisabled: Boolean
     ): Boolean
-    seenNotification(profileId: ID!): Boolean
+    seeNotification(profileId: ID!): Boolean
     deleteNotification(notifID: ID!): Boolean
   }
 
   type Subscription {
     newMessage(chat: ID!): Message
-    notifSeen(profileId: ID!): Boolean
+    notifSeen(profileId: ID!): User
     profileChat(profileId: ID!): Chat
-    activeChatEnded(chatId: ID!): Boolean
+    activeChatStatus(chatId: ID!): Chat
   }
 `;

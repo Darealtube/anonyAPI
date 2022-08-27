@@ -11,14 +11,27 @@ const ChatSchema = new Schema({
   id: ObjectId,
   anonymous: ObjectId,
   confessee: ObjectId,
-  endAttempts: Number,
   expireChatAt: {
     type: Date,
     default: expiryDate,
   },
-  chatEnded: {
-    type: Boolean,
-    default: false,
+  status: {
+    endAttempts: {
+      type: Number,
+      default: 0,
+    },
+    chatEnded: {
+      type: Boolean,
+      default: false,
+    },
+    endRequesting: {
+      type: Boolean,
+      default: false,
+    },
+    endRequester: {
+      type: ObjectId,
+      default: null,
+    },
   },
   anonSeen: {
     type: Boolean,
