@@ -101,7 +101,7 @@ export const permissions = shield({
     ),
     acceptEndChat: isAuthenticated,
     endChat: isAuthenticated,
-    seenNotification: isAuthenticated,
+    seeNotification: isAuthenticated,
     deleteNotification: isAuthenticated,
   },
   Subscription: {
