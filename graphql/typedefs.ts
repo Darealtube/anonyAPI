@@ -61,7 +61,6 @@ export const typeDefs = gql`
     sender: User
     message: String!
     anonymous: Boolean
-    endRequestMsg: Boolean!
   }
 
   type MessageConnection {
