@@ -61,6 +61,7 @@ export const typeDefs = gql`
     sender: User
     message: String!
     anonymous: Boolean
+    repliesTo: Message
   }
 
   type MessageConnection {
@@ -112,6 +113,7 @@ export const typeDefs = gql`
       sender: ID!
       message: String!
       anonymous: Boolean!
+      repliesTo: ID
     ): Boolean
     seenChat(person: String!, chat: ID!): Boolean
     endChatRequest(chat: ID!, requester: ID!): Boolean

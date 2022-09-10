@@ -162,6 +162,9 @@ export const resolvers: Resolvers = {
     sender: async (parent, _args, _context, _info) => {
       return await User.findOne({ _id: parent.sender });
     },
+    repliesTo: async (parent, _args, _context, _info) => {
+      return await Message.findById(parent.repliesTo);
+    },
   },
   Query: {
     searchUser: async (_parent, args, _context, _info) => {

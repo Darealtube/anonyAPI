@@ -9,6 +9,7 @@ const MessageSchema = new Schema({
   sender: String,
   message: String,
   anonymous: Boolean,
+  repliesTo: ObjectId,
   date: {
     type: Date,
     default: DateTime.utc,
